@@ -5,6 +5,24 @@ type Env = {
 	WEBHOOK_URL: string;
 };
 
+const getTodayRange = () => {
+	const todayStr = new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Taipei' });
+
+	const regex = /(\d{1,2})\/(\d{1,2})\/(\d{4})/;
+	const match = todayStr.match(regex);
+
+	if (!match) {
+		throw new Error('Invalid date format');
+	}
+
+	const [, month, day, year] = match;
+
+	const start = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00+08:00`);
+	const end = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T23:59:59+08:00`);
+
+	return { start, end };
+};
+
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
 		await this.scheduled({} as ScheduledEvent, env, ctx);
@@ -17,16 +35,15 @@ export default {
 		const data = ical.parseICS(icsContent);
 
 		// Filter events that are happening today, including multi-day events
-		const today = new Date(new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Taipei' }));
+		const { start, end } = getTodayRange();
 
 		const events = Object.values(data).filter((ev: any) => {
 			if (ev.type == 'VEVENT') {
-				const start = new Date(new Date(ev.start).toLocaleDateString('en-US', { timeZone: 'Asia/Taipei' }));
-				const end = new Date(new Date(ev.end || ev.start).toLocaleDateString('en-US', { timeZone: 'Asia/Taipei' }));
-
-				return start <= new Date(today) && end >= new Date(today);
+				return start <= ev.start && end >= ev.start;
 			}
 		});
+
+		console.log(start, end, events);
 
 		if (events.length === 0) {
 			return;
