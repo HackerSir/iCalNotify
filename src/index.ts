@@ -59,7 +59,7 @@ export default {
 			const location = ev.location || '世界的某個角落';
 
 			return {
-				title: `<@${env.ROLE_ID}>\n${ev.summary}`,
+				title: ev.summary,
 				description: '',
 				fields: [
 					{
@@ -85,7 +85,7 @@ export default {
 				'Content-Type': 'application/json',
 			},
 			body: JSON.stringify({
-				content: `${events.map((ev: any) => ev.summary).join('、')}`,
+				content: `<@&${env.ROLE_ID}>\n${events.map((ev: any) => ev.summary).join('、')}`,
 				embeds,
 			}),
 		});
