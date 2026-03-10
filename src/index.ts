@@ -3,6 +3,7 @@ import ical from 'node-ical';
 type Env = {
 	CALENDER_URL: string;
 	WEBHOOK_URL: string;
+	ROLE_ID: string;
 };
 
 const getTodayRange = () => {
@@ -58,7 +59,7 @@ export default {
 			const location = ev.location || '世界的某個角落';
 
 			return {
-				title: ev.summary,
+				title: `<@${env.ROLE_ID}>\n${ev.summary}`,
 				description: '',
 				fields: [
 					{
